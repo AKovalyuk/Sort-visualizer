@@ -57,4 +57,5 @@ def my_sort(array: List, reverse: bool=False,
             quick_sort(array, part + 1, right)
     
     quick_sort(array, 0, len(array) - 1)
+    log.append(('c', ))
     return log
