@@ -1,15 +1,15 @@
 import React from 'react';
 import './App.css';
 import Slider from '@mui/material/Slider';
-import Button from '@mui/material/Slider';
-import { IconButton, Input, CircularProgress, LinearProgress } from '@mui/material';
+import Button from '@mui/material/Button';
+import { IconButton, Input, CircularProgress, LinearProgress, TextField } from '@mui/material';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
 const MAX_ELEMENTS = 40;
-const MIN_ANIMATION_DELAY = 0.1; // in seconds
+const MIN_ANIMATION_DELAY = 0.01; // in seconds
 
 class App extends React.Component{
   constructor(props){
@@ -31,6 +31,23 @@ class App extends React.Component{
     };
     this.delay = MIN_ANIMATION_DELAY;
     App.app = this;
+    this.select = this.select.bind(this);
+    this.setValue = this.setValue.bind(this);
+    this.moveForward = this.moveForward.bind(this);
+    this.moveBack = this.moveBack.bind(this);
+    this.delete = this.delete.bind(this);
+    this.deselect = this.deselect.bind(this);
+    this.addEmpty = this.addEmpty.bind(this);
+    this.fillRandom = this.fillRandom.bind(this);
+    this.setSpeed = this.setSpeed.bind(this);
+    this.sort = this.sort.bind(this);
+    this.quit = this.quit.bind(this);
+    this.play = this.play.bind(this);
+    this.pause = this.pause.bind(this);
+    this.nextStep = this.nextStep.bind(this);
+    this.prevStep = this.prevStep.bind(this);
+    this.hop = this.hop.bind(this);
+    this.nextStep1 = this.nextStep1.bind(this);
   }
 
   static app;
@@ -44,7 +61,7 @@ class App extends React.Component{
 
   // from Editor
   setValue(value){
-    if(this.state.state == 'edit'){
+    if(this.state.state == 'edit' && typeof(value) == 'number' && value >= 0){
       let arrayCopy = [...this.state.array];
       arrayCopy[this.state.selectedItem] = value;
       this.setState({...this.state, array: arrayCopy});
@@ -52,6 +69,7 @@ class App extends React.Component{
   }
 
   moveForward(){
+    console.log(this.state);
     if(this.state.state == 'edit' && this.state.selectedItem >= 1){
       let arrayCopy = [...this.state.array];
       // swap selectedItem and previous
@@ -63,6 +81,7 @@ class App extends React.Component{
   }
 
   moveBack(){
+    console.log(this.state);
     if(this.state.state == 'edit' && this.state.selectedItem + 1 < this.state.array.length){
       let arrayCopy = [...this.state.array];
       // swap selectedItem and next
@@ -106,9 +125,9 @@ class App extends React.Component{
     }
   }
 
-  setSpeed(speed){
-    speed = Math.max(speed, MIN_ANIMATION_DELAY);
-    this.speed = speed;
+  setSpeed(delay){
+    delay = Math.max(delay, MIN_ANIMATION_DELAY);
+    this.delay = delay;
   }
 
   sort(){
@@ -117,7 +136,7 @@ class App extends React.Component{
       this.setState({...this.state, lockScreen: true});
       fetch('/sort-this', {
         method: 'POST', 
-        body: JSON.stringify({data: this.array})
+        body: JSON.stringify({data: this.state.array})
       }).then((response) => response.ok ? response.json() : response.text()).
       then((data) => {
         if(data == 'bad'){
@@ -150,8 +169,7 @@ class App extends React.Component{
   //for progress bar
   play(){
     if(this.state.state == 'animation'){
-      this.setState({...this.state, paused: false});
-      this.hop();
+      this.setState({...this.state, paused: false}, () => {this.hop();});
     }
   }
 
@@ -162,6 +180,7 @@ class App extends React.Component{
   }
 
   nextStep(delta = 1){
+    console.log(delta);
     if(this.state.state == 'animation' && this.state.currentStep + delta < this.state.steps.length && this.state.currentStep + delta >= 0){
       let currentStep = this.state.currentStep + delta;
       let stepData = this.state.steps[currentStep];
@@ -194,12 +213,19 @@ class App extends React.Component{
     this.nextStep(-1);
   }
 
+  nextStep1(){
+    this.nextStep();
+  }
+
   hop(){
-    if(!this.state.paused && this.state.state == 'animation' && this.state.currentStep + 1 < this.state.array.length){
-      this.nextStep();
+    if(!this.state.paused && this.state.state == 'animation' && this.state.currentStep + 1 < this.state.steps.length){
+      this.nextStep1();
       setTimeout(() => {
         this.hop();
       }, this.delay * 1000);
+    }
+    else{
+      this.setState({...this.state, paused: true})
     }
   }
 
@@ -209,10 +235,10 @@ class App extends React.Component{
         <Sequence array={this.state.array} i={this.state.i} j={this.state.j} a={this.state.a} b={this.state.b}/>
         <div className="control-panel">
           <Settings/>
-          <Editor/>
+          {this.state.state == 'edit' ? <Editor/> : null}
         </div>
         {this.state.state == 'animation' ? <ProgressBar currentStep={this.state.currentStep}/> : null}
-
+        {this.state.lockScreen ? <LockScreen/> : null}
       </div>
     )
   }
@@ -224,9 +250,22 @@ class Sequence extends React.Component{
   }
 
   render(){
+    let maxElement = Math.max.apply(null, App.app.state.array);
     return(
       <div className='sequence'>
-        {App.app.state.array.map((element) => <h6>{element}</h6>)}
+        {App.app.state.array.map((element, index) => {
+          return (
+            <div
+              className='array-element' 
+              style={{
+                width: `${100 / App.app.state.array.length}%`,
+                height: `${100* (0.95 * element / maxElement + 0.05)}%`,
+                backgroundColor: App.app.state.selectedItem == index ? 'pink' : (App.app.state.a <= index && App.app.state.b >= index ? 'lightskyblue' : 'coral')
+              }}
+              onClick={() => {App.app.select(index)}}
+              >{App.app.state.i == index ? 'i' : (App.app.state.j == index ? 'j' : '')}</div>
+          );
+        })}
       </div>
     )
   }
@@ -241,7 +280,16 @@ class ProgressBar extends React.Component{
     return(
       <div className='progress-bar'>
         <div className='progress-bar-container'>
-          <LinearProgress variant="determinate" value={App.app.state.currentStep / App.app.state.steps.length * 100}/>
+          <div>
+            <u>{App.app.state.currentStep + 1}</u>
+            <br></br>
+            {App.app.state.steps.length}
+          </div>
+          <LinearProgress 
+            variant="determinate" 
+            value={(App.app.state.currentStep + 1)/ App.app.state.steps.length * 100}
+            sx={{width: '70%'}}
+          />
         </div>
         <div className='play-control inline-container'>
           <IconButton 
@@ -250,7 +298,7 @@ class ProgressBar extends React.Component{
           >
             <ChevronLeftRoundedIcon/>
           </IconButton>
-          {App.state.paused ?
+          {!App.app.state.paused ?
             <IconButton onClick={App.app.pause}>
               <PauseRoundedIcon/>
             </IconButton> :
@@ -260,7 +308,7 @@ class ProgressBar extends React.Component{
           }
           <IconButton 
             disabled={!App.app.state.paused}
-            onClick={App.app.nextStep}
+            onClick={App.app.nextStep1}
           >
             <ChevronRightRoundedIcon/>
           </IconButton>
@@ -278,22 +326,32 @@ class Settings extends React.Component{
   render(){
     return (
       <div className='settings'>
-        <h1>Set animation delay</h1>
-        <Slider min={MIN_ANIMATION_DELAY} max={15 * MIN_ANIMATION_DELAY} value={MIN_ANIMATION_DELAY}/>
+        <h3>Set animation delay</h3>
+        <Slider 
+          min={MIN_ANIMATION_DELAY} 
+          max={15 * MIN_ANIMATION_DELAY} 
+          defaultValue={MIN_ANIMATION_DELAY} 
+          step={0.005}
+          sx={{width: '8.5rem'}}
+          onChange={(e) => {App.app.setSpeed(e.target.value); console.log(e.target.value)}}/>
         <Button 
+          sx={{width: '8.5rem'}}
           variant="outlined" 
           disabled={App.app.state.state == 'animation'}
           onClick={App.app.addEmpty}
         >Add element</Button>
         <Button 
+          sx={{width: '8.5rem'}}
           variant="outlined"
           disabled={App.app.state.state == 'animation'}
           onClick={App.app.fillRandom}
         >Fill random</Button>
         <Button 
+          sx={{width: '8.5rem'}}
           variant={App.app.state.state == 'ainmation' ? 'contained' : 'outlined'}
           onClick={App.app.state.state == 'animation' ? App.app.quit : App.app.sort}
           color={App.app.state.state == 'animation' ? 'error' : 'success'}
+          disabled={App.app.state.state == 'edit'}
         >{App.app.state.state == 'animation' ? 'Quit' : 'Sort'}</Button>
       </div>
     )
@@ -308,20 +366,25 @@ class Editor extends React.Component{
   render(){
     return (
       <div className='editor'>
-        <h1>Selected item: {App.app.state.selectedItem}</h1>
+        <h3>Selected item: {App.app.state.selectedItem}</h3>
         <div className='inline-container'>
-          <IconButton size='large' disabled={App.app.state.selectedItem == App.app.state.array.length - 1}>
+          <IconButton size='large' disabled={App.app.state.selectedItem == 0} onClick={App.app.moveForward}>
             <ChevronLeftRoundedIcon/>
           </IconButton>
-          <IconButton size='large' disabled={App.app.state.selectedItem == 0}>
+          <IconButton size='large' disabled={App.app.state.selectedItem == App.app.state.array.length - 1} onClick={App.app.moveBack}>
             <ChevronRightRoundedIcon/>
           </IconButton>
         </div>
-        <Input 
+        <TextField 
+          sx={{width: '9rem'}}
           inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
           onChange={(e) => {App.app.setValue(Number.parseInt(e.target.value))}}
-        ></Input>
-        <Button color='error' variant="outlined" onClick={App.app.delete}>Delete</Button>
+          defaultValue={'' + App.app.state.array[App.app.state.selectedItem]}
+          id="standard-basic"
+          variant="standard"
+        ></TextField>
+        <Button color='success' onClick={App.app.deselect} sx={{width: '8.5rem'}}>Ok</Button>
+        <Button color='error' variant="outlined" onClick={App.app.delete} sx={{width: '8.5rem'}}>Delete</Button>
       </div>
     )
   }
