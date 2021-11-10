@@ -1,3 +1,5 @@
+"""Module with sorting function"""
+
 from typing import List, Optional, Callable
 
 def my_sort(array: List, reverse: bool=False,
@@ -55,7 +57,7 @@ def my_sort(array: List, reverse: bool=False,
             part = partition(array, left, right)
             quick_sort(array, left, part)
             quick_sort(array, part + 1, right)
-    
+
     quick_sort(array, 0, len(array) - 1)
     log.append(('c', ))
     return log

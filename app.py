@@ -1,4 +1,5 @@
-from sys import stderr
+"""Server application"""
+
 from flask import Flask, request, make_response, send_file
 from flask.json import jsonify
 from my_sort import my_sort
@@ -11,8 +12,7 @@ def sort_this():
     if isinstance(array, list) and filter(lambda x: isinstance(x, int), array):
         steps = my_sort(array)
         return make_response(jsonify({'data': steps}), 200)
-    else:
-        return make_response('bad', 200)
+    return make_response('bad', 200)
 
 @app.route('/')
 def index():

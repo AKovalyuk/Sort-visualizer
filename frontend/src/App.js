@@ -8,7 +8,7 @@ import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
-const MAX_ELEMENTS = 40;
+const MAX_ELEMENTS = 60;
 const MIN_ANIMATION_DELAY = 0.01; // in seconds
 
 class App extends React.Component{
@@ -260,7 +260,7 @@ class Sequence extends React.Component{
               style={{
                 width: `${100 / App.app.state.array.length}%`,
                 height: `${100* (0.95 * element / maxElement + 0.05)}%`,
-                backgroundColor: App.app.state.selectedItem == index ? 'pink' : (App.app.state.a <= index && App.app.state.b >= index ? 'lightskyblue' : 'coral')
+                backgroundColor: App.app.state.a <= index && App.app.state.b >= index ? 'lightskyblue' : 'coral'
               }}
               onClick={() => {App.app.select(index)}}
               >{App.app.state.i == index ? 'i' : (App.app.state.j == index ? 'j' : '')}</div>
