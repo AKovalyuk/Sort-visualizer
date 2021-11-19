@@ -263,7 +263,7 @@ class Sequence extends React.Component{
                 backgroundColor: App.app.state.a <= index && App.app.state.b >= index ? 'lightskyblue' : 'coral'
               }}
               onClick={() => {App.app.select(index)}}
-              >{App.app.state.i == index ? 'i' : (App.app.state.j == index ? 'j' : '')}</div>
+              >{App.app.state.i == index ? 'i' : (App.app.state.j == index ? 'j' : (App.app.state.array.length < 50 ? App.app.state.array[index] : ''))}</div>
           );
         })}
       </div>

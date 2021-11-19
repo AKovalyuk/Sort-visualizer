@@ -2,7 +2,7 @@
 
 import unittest
 
-import my_sort  # pylint: disable=E0401
+from my_sort import SortAlghoritms # pylint: disable=E0401
 
 
 TEST_NUMBER = [
@@ -28,6 +28,7 @@ TEST_STR = [
     [''],
 ]
 
+my_sort = SortAlghoritms()
 
 class TestSort(unittest.TestCase):
     """Тест-кейс модуля my_sort"""
@@ -35,33 +36,25 @@ class TestSort(unittest.TestCase):
         """Тест функции сортировки числовых данных по возрастанию"""
         for data in TEST_NUMBER:
             with self.subTest():
-                copy = data.copy()
-                my_sort.my_sort(copy)
-                self.assertEqual(copy, sorted(data))
+                self.assertEqual(my_sort.my_sort(data), sorted(data))
 
     def test_sort_number_decrease(self):
         """Тест функции сортировки числовых данных по невозрастанию"""
         for data in TEST_NUMBER:
             with self.subTest():
-                copy = data.copy()
-                my_sort.my_sort(copy)
-                self.assertEqual(copy, sorted(data))
+                self.assertEqual(my_sort.my_sort(data), sorted(data))
 
     def test_sort_str_increase(self):
         """Тест функции сортировки строковых данных по возрастанию"""
         for data in TEST_STR:
             with self.subTest():
-                copy = data.copy()
-                my_sort.my_sort(copy)
-                self.assertEqual(copy, sorted(data))
+                self.assertEqual(my_sort.my_sort(data), sorted(data))
 
     def test_sort_str_decrease(self):
         """Тест функции сортировки строковых данных по невозрастанию"""
         for data in TEST_STR:
             with self.subTest():
-                copy = data.copy()
-                my_sort.my_sort(copy, reverse=True)
-                self.assertEqual(copy, sorted(data, reverse=True))
+                self.assertEqual(my_sort.my_sort(data, reverse=True), sorted(data, reverse=True))
 
 if __name__ == '__main__':
     unittest.main()
